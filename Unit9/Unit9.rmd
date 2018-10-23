@@ -1,0 +1,25 @@
+---
+title: "MSDS6371, Sec 401, Unit9 (Ch7) HW"
+author: "Steve Bramhall"
+date: "October 23, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Prob 2a
+```{r echo = TRUE}
+
+testDataDF <- read.csv(".\\Test Data.csv",header=TRUE,sep=",",
+                       stringsAsFactors = TRUE, encoding = "UTF-8")         # read data file
+names(testDataDF) <- c("StudentID","Math","Read","Write","Science","SocSt") # rename table columns
+
+datalm<-lm(Math ~ Science, data = testDataDF, alpha=.01)                    # linear model to data frame
+datalm                                                                      # show results of linear model
+
+abs(qt(0.01/2,198))                                                         # 2 sided crit val, 99% DF=198
+summary(datalm)                                                             # show summary stats for lin model
+confint(datalm, level=.99)                                                  # get confidence intervals
+```

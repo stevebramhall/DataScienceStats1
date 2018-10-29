@@ -172,6 +172,56 @@ datalm&lt;-lm(Math ~ Science, data = testDataDF, alpha=.01)                    #
 ## (Intercept) 14.536591 28.8637921
 ## Science      0.461094  0.7325341</code></pre>
 </div>
+<div id="bonus-prob-3" class="section level2">
+<h2>Bonus Prob 3</h2>
+<pre class="r"><code>baseball &lt;- read.csv(&quot;.\\Baseball_Data.csv&quot;,header=TRUE,sep=&quot;,&quot;,stringsAsFactors = TRUE, encoding = &quot;UTF-8&quot;)
+names(baseball) &lt;- c(&quot;Team&quot;,&quot;Payroll&quot;,&quot;Wins&quot;) # rename table columns
+#plot(baseball$Payroll, baseball$Wins, xlab='Payroll', ylab='Wins', main='Baseball: Wins vs. Payroll')
+#cor(baseball$Payroll,baseball$Wins)
+baseballlm &lt;- lm(Wins~Payroll, data=baseball)
+summary(baseballlm)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Wins ~ Payroll, data = baseball)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -19.553  -8.340   1.099   9.301  16.925 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  71.4720     4.9549  14.425 1.73e-14 ***
+## Payroll       0.1056     0.0507   2.083   0.0465 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 10.42 on 28 degrees of freedom
+## Multiple R-squared:  0.1341, Adjusted R-squared:  0.1032 
+## F-statistic: 4.337 on 1 and 28 DF,  p-value: 0.04654</code></pre>
+<pre class="r"><code>confint(baseballlm)</code></pre>
+<pre><code>##                   2.5 %     97.5 %
+## (Intercept) 61.32240470 81.6216904
+## Payroll      0.00173383  0.2094509</code></pre>
+</div>
+<div id="bonus-prob-5a" class="section level2">
+<h2>Bonus Prob 5a</h2>
+<pre class="r"><code># create data frame with $100M payroll point
+newpayroll &lt;- data.frame(Payroll=100) 
+
+# get expected wins with CI
+pred.w.clim &lt;- predict(baseballlm, newdata=newpayroll,interval=&quot;confidence&quot;) 
+pred.w.clim</code></pre>
+<pre><code>##        fit      lwr      upr
+## 1 82.03129 78.00399 86.05858</code></pre>
+</div>
+<div id="bonus-prob-5b" class="section level2">
+<h2>Bonus Prob 5b</h2>
+<pre class="r"><code># get expected wins with CI
+pred.w.plim &lt;- predict(baseballlm, newdata=newpayroll,interval=&quot;prediction&quot;) 
+pred.w.plim</code></pre>
+<pre><code>##        fit      lwr      upr
+## 1 82.03129 60.30746 103.7551</code></pre>
+</div>
 
 
 

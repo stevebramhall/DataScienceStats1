@@ -23,3 +23,31 @@ abs(qt(0.01/2,198))                                                         # 2 
 summary(datalm)                                                             # show summary stats for lin model
 confint(datalm, level=.99)                                                  # get confidence intervals
 ```
+
+## Bonus Prob 3
+```{r}
+baseball <- read.csv(".\\Baseball_Data.csv",header=TRUE,sep=",",stringsAsFactors = TRUE, encoding = "UTF-8")
+names(baseball) <- c("Team","Payroll","Wins") # rename table columns
+#plot(baseball$Payroll, baseball$Wins, xlab='Payroll', ylab='Wins', main='Baseball: Wins vs. Payroll')
+#cor(baseball$Payroll,baseball$Wins)
+baseballlm <- lm(Wins~Payroll, data=baseball)
+summary(baseballlm)
+confint(baseballlm)
+```
+## Bonus Prob 5a
+```{r}
+# create data frame with $100M payroll point
+newpayroll <- data.frame(Payroll=100) 
+
+# get expected wins with CI
+pred.w.clim <- predict(baseballlm, newdata=newpayroll,interval="confidence") 
+pred.w.clim
+```
+## Bonus Prob 5b
+```{r}
+# get expected wins with CI
+pred.w.plim <- predict(baseballlm, newdata=newpayroll,interval="prediction") 
+pred.w.plim
+```
+
+

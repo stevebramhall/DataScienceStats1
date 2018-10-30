@@ -7,9 +7,12 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(investr) # for calibration
+library(MASS)    # for studentized residuals
 ```
 
-```{r}
+```{r echo=FALSE}
 reg.conf.intervals <- function(x, y) {
   n <- length(y)        # Find length of y to use as sample size
   lm.model <- lm(y ~ x) # Fit linear model
@@ -21,6 +24,7 @@ reg.conf.intervals <- function(x, y) {
   # Find SSE and MSE
   sse <- sum((y - lm.model$fitted.values)^2)
   mse <- sse / (n - 2)
+  ase <- sse / n
   
   t.val <- qt(0.975, n - 2) # Calculate critical t-value
   
@@ -58,30 +62,32 @@ reg.conf.intervals <- function(x, y) {
 #### 1a. Provide a scatterplot with 99% confidence intervals of the regression line and 99% prediction intervals of the regression line.  
 ```{r}
 # Read data from csv file
-data1 <- read.csv("..\\..\\DoingDataScience\\HW9\\InputFiles\\Beers.csv",header=TRUE,sep=",",stringsAsFactors = TRUE, encoding = "UTF-8")
-names(data1) <- c("BeerName","BeerID","ABV","IBU","BreweryID","BeerStyle","Ounces") # rename table columns
+data1 <- read.csv(".\\Male Display Data Set.csv",header=TRUE,sep=",",stringsAsFactors = TRUE, encoding = "UTF-8")
+names(data1) <- c("Mass","TCell") # rename table columns
 
 # get min/max values for newx range
-summary(data1$IBU) 
-newx <- seq(4, 138, by=20)
+summary(data1$Mass) 
+newx <- seq(2, 10, by=0.5)
+newy <- seq(0, 0.7, by=0.1)
 
 # linear model
-linear.regress.model <- lm(ABV ~ IBU, data=data1)
+linear.regress.model <- lm(TCell ~ Mass, data=data1)
 
 # plot linear model
-plot(data1$IBU, data1$ABV, xlab="ABV", ylab="IBU", main="Regression")
+plot(data1$Mass, data1$TCel, ylim=c(-0.2,0.8),xlab="Mass (g)", ylab="T-Cell (in mm)", main="Regression")
 abline(linear.regress.model, col="lightblue")
 
 # add confidence interval lines
-conf.interval <- predict(linear.regress.model,newdata=data.frame(IBU=newx),interval="confidence",level = 0.99)
+conf.interval <- predict(linear.regress.model,newdata=data.frame(Mass=newx),interval="confidence",level = 0.99)
 lines(newx, conf.interval[,2], col="blue", lty=2)
 lines(newx, conf.interval[,3], col="blue", lty=2)
 
 # add prediction interval lines
-pred.interval <- predict(linear.regress.model,newdata=data.frame(IBU=newx),interval="prediction",level = 0.99)
+pred.interval <- predict(linear.regress.model,newdata=data.frame(Mass=newx),interval="prediction",level = 0.99)
 lines(newx, pred.interval[,2], col="orange", lty=2)
 lines(newx, pred.interval[,3], col="orange", lty=2)
 ```
+
 ##### Code ref: https://rpubs.com/Bio-Geek/71339
 
 #### 1b. Provide	a table showing the t-statistics and p-values for the significance of the regression parameters beta0 and beta1
@@ -91,32 +97,46 @@ summary(linear.regress.model)
 #### 1c. Using the output in (b), show all 6 steps of each hypothesis test. 
 1. Beta1 = 0, Beta1 not equal to 0
 ```{r}
-n <- length(data1$IBU) 
- t.val <- qt(0.975, n - 2) # Calculate critical t-value
+n <- length(data1$Mass) 
+t.val <- qt(0.995, n - 2) # Calculate critical t-value
+t.val
 ```
-2. Critical Value = 
-3. Beta0 t-statistic = 
-4. p-value =
+2. Critical Value = 2.861
+3. Beta0 t-statistic = 3.084
+4. p-value = 0.00611
 5. reject Ho
-6. The evidence suggests at the alpha = .01 level of significance (p-value = ) the data is not linearly correlated. We are 99% confident that when the means IBU increases by 1, the mean ABV increases between XX and XX points. Causation. Population inference.
-#### 1d. State the regression equation. Be careful to use the mean Tcell or predicted Tcell, rather than just Tcell.
-#### y = mx + b
-#### 1e. Interpret the slope in the model (regression equation).
-####     For every 1-point increase in the mean science score, the estimated mean math score increases .5968 points.
-#### 1f. Interpret the y-intercept in the model (regression equation). 
-####     y-intercept: If the mean science score is 0 points, the estimated mean math score is 21.7.
-#### 1g. Find and interpret the 99% confidence interval for the mean t-cell response conditional on a stone mass of 4.5 grams.
 ```{r}
-conf.interval.1g <- predict(linear.regress.model, newdata=data.frame(IBU=4.5), interval="confidence",level = 0.99)
+confint(linear.regress.model)
+```
+
+6. The evidence suggests at the alpha = .01 level of significance (p-value = ) the data is not linearly correlated. We are 99% confident that when the mean Mass increases by 1g, the mean T-Cell increases between 0.0105 and 0.0551 in mm. This is an observational study so we cannot make any inferences about causation. It is unknown whether a random sample was used so any inferences to population are limited to the male black-eared wheaters in this study.
+
+#### 1d. State the regression equation. Be careful to use the mean Tcell or predicted Tcell, rather than just Tcell.
+
+##### T-Cell = 0.03282*stone mass + 0.0875
+
+#### 1e. Interpret the slope in the model (regression equation).
+
+##### For every 1 gram increase in the mean mass, the estimated mean T-Cell value increases 0.03282 in mm.
+
+#### 1f. Interpret the y-intercept in the model (regression equation). 
+
+##### y-intercept: If the mean mass 0 grams, the estimated mean T-Cell is 0.0875 in mm.
+
+#### 1g. Find and interpret the 99% confidence interval for the mean t-cell response conditional on a stone mass of 4.5 grams.
+
+```{r}
+conf.interval.1g <- predict(linear.regress.model, newdata=data.frame(Mass=4.5), interval="confidence",level = 0.99)
 conf.interval.1g
 ```
-####     The 99% confidence interval for the mean t-cell response on a stone mass of 4.5g is ( , )
+##### The 99% confidence interval for the mean t-cell response on a stone mass of 4.5g is (0.1386,0.3318)
+
 #### 1h. Find and interpret the 99% prediction interval for the mean t-cell response conditional on a stone mass of 4.5 grams.
 ```{r}
-pred.interval.1g <- predict(linear.regress.model, newdata=data.frame(IBU=4.5), interval="prediction",level = 0.99)
+pred.interval.1g <- predict(linear.regress.model, newdata=data.frame(Mass=4.5), interval="prediction",level = 0.99)
 pred.interval.1g
 ```
-####     The 99% prediction interval for the mean t-cell response on a stone mass of 4.5g is ( , )
+####     The 99% prediction interval for the mean t-cell response on a stone mass of 4.5g is (-0.01593,0.4863). Since mass can't be negative (0,0.4863).
 ####1i1a. From "eye-balling" the graph, the 99% calibration interval for the mean t-cell response of 0.3 appears to be roughly ( , )
 ####1i1b. From "eye-balling" the graph, the 99% calibration interval for a single t-cell response of 0.3 appears to be roughly ( , )
 ####1i2a. Use SW to abtain the results for 1i1a.
@@ -128,6 +148,41 @@ calibrate(linear.regress.model,y0=4.5,level=0.99,interval="inversion",mean.respo
 calibrate(linear.regress.model,y0=4.5,level=0.99,interval="inversion",mean.response=FALSE)  # get single response
 ```
 ####1i3a. Interpret the results for 1i1a.
-####1i3b. Interpret the results for 1i1b.
-####1j. Provide a scatterplot of residuals.
 
+####1i3b. Interpret the results for 1i1b.
+
+####1j. Provide a scatterplot of residuals.
+```{r}
+resids=resid(linear.regress.model)                       # get the residuals
+plot(data1$Mass,resids,                                  # plot the residuals
+     main="Residual Plot: T-Cell vs Mass",               # add plot title
+     xlab="Mass (g)",                                    # add x-axis label
+     ylab="T-Cell Residuals")                            # add y-axis label
+
+studentized.resids=studres(linear.regress.model)
+plot(data1$Mass,studentized.resids,                      # plot the studentized residuals
+     main="Studenteized Residual Plot: T-Cell vs Mass",  # add plot title
+     xlab="Mass (g)",                                    # add x-axis label
+     ylab="T-Cell Studentized Residuals")                # add y-axis label
+
+```
+
+####1k. Provide a histogram of residuals.
+```{r}
+hist(resids,
+     main="Normal Curve Over Residuals Histogram",       # add plot title
+     xlab="Mass",                                        # add x-axis label
+     ylab="T-Cell")                                      # add y-axis label
+curve(dnorm(x,mean=mean(resids),sd=sd(resids)),          # add normal curve
+      col="darkblue",lwd=2,add=TRUE,yaxt="n")
+
+hist(studentized.resids,
+     main="Normal Curve Over Studentized Residuals Histogram", # add plot title
+     xlab="Mass",                                        # add x-axis label
+     ylab="T-Cell")                                      # add y-axis label
+curve(dnorm(x,mean=mean(studentized.resids),sd=sd(studentized.resids)), # add normal curve
+      col="darkgreen",lwd=2,add=TRUE,yaxt="n")
+```
+
+
+####1l. Provide a measure of the proportion of variation in the response that is accounted for by the explanatory variable. Interpret this measure.

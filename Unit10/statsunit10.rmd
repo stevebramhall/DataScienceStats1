@@ -67,14 +67,15 @@ names(data1) <- c("Mass","TCell") # rename table columns
 
 # get min/max values for newx range
 summary(data1$Mass) 
-newx <- seq(2, 10, by=0.5)
+#newx <- seq(2, 10, by=0.5)
+newx <- seq(-2, 12, by=0.5)
 newy <- seq(0, 0.7, by=0.1)
 
 # linear model
 linear.regress.model <- lm(TCell ~ Mass, data=data1)
 
 # plot linear model
-plot(data1$Mass, data1$TCel, ylim=c(-0.2,0.8),xlab="Mass (g)", ylab="T-Cell (in mm)", main="Regression")
+plot(data1$Mass, data1$TCel, ylim=c(-0.2,0.8),xlim=c(-2,12),xlab="Mass (g)", ylab="T-Cell (in mm)", main="Regression")
 abline(linear.regress.model, col="lightblue")
 
 # add confidence interval lines
@@ -100,20 +101,26 @@ summary(linear.regress.model)
 n <- length(data1$Mass) 
 t.val <- qt(0.995, n - 2) # Calculate critical t-value
 t.val
+
+confint(linear.regress.model, level = .99)
 ```
 2. Critical Value = 2.861
 3. Beta0 t-statistic = 3.084
 4. p-value = 0.00611
 5. reject Ho
-```{r}
-confint(linear.regress.model)
+6. There is sufficient evidence at the alpha = 0.01 level of significance (p-value=0.00611) to suggest the data are linearly correlated. Therefore, Beta1 is not 0. This is an observational study so we can infer an association between stone mass and T-Cel bu cannot infer causality. We do not have sufficient information on the data collection methodology to generalize the results beyond the population of the study. We are 99% confident that when the mean Mass increases by 1g, the mean T-Cell increases between 0.0105 and 0.0551 in mm.
 ```
 
-6. The evidence suggests at the alpha = .01 level of significance (p-value = ) the data is not linearly correlated. We are 99% confident that when the mean Mass increases by 1g, the mean T-Cell increases between 0.0105 and 0.0551 in mm. This is an observational study so we cannot make any inferences about causation. It is unknown whether a random sample was used so any inferences to population are limited to the male black-eared wheaters in this study.
+1. Beta0 = 0, Beta0 not equal to 0
+2. Critical Value = 2.861
+3. Beta0 t-statistic = 1.112
+4. p-value = 0.28
+5. Fail to reject Ho
+6. There is sufficient evidence at the alpha = 0.01 level of significance (p-value=0.28) to suggest the prediced T-Cell value is  zero when the mass is 0g. In other words, there is evidence that the regression equation does pass through the origin. 
 
 #### 1d. State the regression equation. Be careful to use the mean Tcell or predicted Tcell, rather than just Tcell.
 
-##### T-Cell = 0.03282*stone mass + 0.0875
+##### T-Cell = 0.03282*stone mass + 0.0875 
 
 #### 1e. Interpret the slope in the model (regression equation).
 
@@ -137,19 +144,21 @@ pred.interval.1g <- predict(linear.regress.model, newdata=data.frame(Mass=4.5), 
 pred.interval.1g
 ```
 ####     The 99% prediction interval for the mean t-cell response on a stone mass of 4.5g is (-0.01593,0.4863). Since mass can't be negative (0,0.4863).
-####1i1a. From "eye-balling" the graph, the 99% calibration interval for the mean t-cell response of 0.3 appears to be roughly ( , )
-####1i1b. From "eye-balling" the graph, the 99% calibration interval for a single t-cell response of 0.3 appears to be roughly ( , )
+####1i1a. From "eye-balling" the graph, the 99% calibration interval for the mean t-cell response of 0.3 appears to be roughly (-2,9)
+####1i1b. From "eye-balling" the graph, the 99% prediction interval for a single t-cell response of 0.3 appears to be roughly (-26,24)
 ####1i2a. Use SW to abtain the results for 1i1a.
 ```{r}
-calibrate(linear.regress.model,y0=4.5,level=0.99,interval="inversion",mean.response=TRUE)   # get mean response
+calibrate(linear.regress.model,y0=0.3,level=0.99,interval="inversion",mean.response=TRUE)   # get mean response
 ```
 ####1i2b. Use SW to abtain the results for 1i1b.
 ```{r}
-calibrate(linear.regress.model,y0=4.5,level=0.99,interval="inversion",mean.response=FALSE)  # get single response
+calibrate(linear.regress.model,y0=0.3,level=0.99,interval="inversion",mean.response=FALSE)  # get single response
 ```
 ####1i3a. Interpret the results for 1i1a.
+#### To obtain a T-Cell value of 0.3 in mm we are 95% confident that the stones must have a mean value between 0 to 9 grams.
 
 ####1i3b. Interpret the results for 1i1b.
+#### To obtain a T-Cell value of 0.3 in mm we are 95% confident that the stones must have a value between 0 to 24 grams.
 
 ####1j. Provide a scatterplot of residuals.
 ```{r}
@@ -176,7 +185,7 @@ hist(resids,
 curve(dnorm(x,mean=mean(resids),sd=sd(resids)),          # add normal curve
       col="darkblue",lwd=2,add=TRUE,yaxt="n")
 
-hist(studentized.resids,
+hist(studentized.resids,prob=TRUE,
      main="Normal Curve Over Studentized Residuals Histogram", # add plot title
      xlab="Mass",                                        # add x-axis label
      ylab="T-Cell")                                      # add y-axis label
@@ -186,3 +195,7 @@ curve(dnorm(x,mean=mean(studentized.resids),sd=sd(studentized.resids)), # add no
 
 
 ####1l. Provide a measure of the proportion of variation in the response that is accounted for by the explanatory variable. Interpret this measure.
+```{r}
+summary(linear.regress.model)
+```
+

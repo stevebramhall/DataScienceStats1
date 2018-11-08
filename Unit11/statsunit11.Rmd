@@ -1,0 +1,88 @@
+---
+title: "Stats HW11"
+author: "Steve Bramhall"
+date: "November 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(MASS)    # for studentized residuals
+```
+
+####2ai i.	A scatterplot with the following included on the graph: regression line, confidence intervals of the regression line, and prediction intervals of the regression line.
+```{r}
+# Read data from csv file
+year <- c(1992,1994,1996,1998,2000)
+prevalence <- c(3.5,5.3,7.8,11.8,18.3)
+prevalence = log(prevalence)
+
+data1=data.frame(year,prevalence)
+
+# get min/max values for newx range
+summary(data1$prevalence) 
+newx <- seq(1992, 2000, by=2)
+newy <- seq(0, 20, by=5)
+
+# linear model
+linear.regress.model <- lm(prevalence ~ year, data=data1)
+
+# plot linear model
+plot(data1$year,data1$prevalence, xlab="Year", ylab="Log-Prevalence", main="Regression")
+abline(linear.regress.model, col="lightblue")
+
+# add confidence interval lines
+conf.interval <- predict(linear.regress.model,newdata=data.frame(Year=newx),interval="confidence",level = 0.95)
+lines(newx, conf.interval[,2], col="blue", lty=2)
+lines(newx, conf.interval[,3], col="blue", lty=2)
+
+# add prediction interval lines
+pred.interval <- predict(linear.regress.model,newdata=data.frame(Year=newx),interval="prediction",level = 0.95)
+lines(newx, pred.interval[,2], col="orange", lty=2)
+lines(newx, pred.interval[,3], col="orange", lty=2)
+```
+
+####2aii A scatterplot of residuals.
+```{r}
+
+resids=resid(linear.regress.model)                       # get the residuals
+plot(data1$year,resids,                                  # plot the residuals
+     main="Residual Plot: Log-Prevalence vs Year",       # add plot title
+     xlab="Year",                                        # add x-axis label
+     ylab="Log-Prevalence")                              # add y-axis label
+
+studentized.resids=studres(linear.regress.model)
+plot(data1$year,studentized.resids,                      # plot the studentized residuals
+     main="Studentized Residual Plot: Log-Prevalence vs Year",# add plot title
+     xlab="Year",                                        # add x-axis label
+     ylab="Log-Prevalence")                              # add y-axis label
+
+```
+
+####2aiii A histogram of residuals with the normal distribution superimposed.
+```{r}
+hist(resids,prob=TRUE,
+     main="Normal Curve Over Residuals Histogram",       # add plot title
+     xlab="Year",                                        # add x-axis label
+     ylab="Log-Prevalence")                              # add y-axis label
+curve(dnorm(x,mean=mean(resids),sd=sd(resids)),          # add normal curve
+      col="darkblue",lwd=2,add=TRUE,yaxt="n")
+
+hist(studentized.resids,prob=TRUE,
+     main="Normal Curve Over Studentized Residuals Histogram", # add plot title
+     xlab="Year",                                        # add x-axis label
+     ylab="Log-Prevalence",                              # add y-axis label
+     xlim=c(-4,4))
+curve(dnorm(x,mean=mean(studentized.resids),sd=sd(studentized.resids)), # add normal curve
+      col="darkgreen",lwd=2,add=TRUE,yaxt="n")
+```
+
+
+####2aiv Once a reasonable model is found (possibly using a transformation), provide a table showing the t-statistics and p-values for the significance of the regression parameters β_(0 ) and β_1.
+```{r}
+summary(linear.regress.model)
+```
+
+
+

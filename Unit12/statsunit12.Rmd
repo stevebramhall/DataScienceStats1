@@ -84,7 +84,9 @@ summary(fit4) # show results
 
 ```{r}
 fit5 <- lm(brainDF$logBrain ~ brainDF$logGestation, data=brainDF)
-summary(fit5)
+sm <- summary(fit5)
+sm
+confint(fit5)
 ```
 
 
@@ -100,5 +102,30 @@ plot(fit5)
 
 ### Step 5: Interpret Coefficients
 
+
+### Bonus C
+```{r}
+# Reading Data File
+crabDF <- read.csv(".\\Crab17.csv",header=TRUE,sep=",",
+                       stringsAsFactors = TRUE, encoding = "UTF-8") # read data file
+names(crabDF) <- c("Force", "Height", "Species")  # rename table columns
+
+Species=crabDF$Species  # Use for Legend
+ggplot(crabDF,aes(x=crabDF$Height,y=crabDF$Force,col=Species))+geom_point()+
+  labs(title = "Force vs Height",x="Height",y="Force")      # add axes titles
+```
+
+### Bonus D
+```{r}
+fit <- lm(crabDF$Force~crabDF$Height+crabDF$Species, data=crabDF)
+summary(fit)
+```
+
+
+### Bonus F
+```{r}
+# MSE
+mean(sm$residuals^2)
+```
 
 

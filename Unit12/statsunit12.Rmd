@@ -1,0 +1,104 @@
+---
+title: "Unit12 HW"
+author: "Steve Bramhall"
+date: "November 15, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(ggplot2)
+library(reshape2)
+```
+
+
+```{r}
+# Reading Data File
+brainDF <- read.csv(".\\Brain.csv",header=TRUE,sep=",",
+                       stringsAsFactors = TRUE, encoding = "UTF-8") # read data file
+names(brainDF) <- c("Species","Brain","Body","Gestation","Litter")  # rename table columns
+```
+
+### Step 1: Review Assumptions
+```{r}
+Litter=brainDF$Litter  # Use for Legend
+ggplot(brainDF,aes(x=brainDF$Gestation,y=brainDF$Brain,col=Litter))+geom_point()+
+  labs(title = "Brain Weight vs Gestation",x="Gestation (days)",y="Brain Weight (g)")      # add axes titles
+```
+
+### Step 2: Build a Model
+
+```{r}
+brainDF$logGestation <- log(brainDF$Gestation)
+brainDF$logLitter <- log(brainDF$Litter)
+brainDF$logBrain <- log(brainDF$Brain)
+
+fit1 <- lm(brainDF$Brain ~ brainDF$Gestation + brainDF$Litter, data=brainDF)
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(fit1)
+```
+
+#### The residuals are not random so we need to do a transformation.
+
+```{r}
+fit2 <- lm(brainDF$Brain ~ brainDF$logGestation + brainDF$Litter, data=brainDF)
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(fit2)
+```
+
+#### The residuals are still not random so we need to try a different transformation.
+
+```{r}
+fit3 <- lm(brainDF$Brain ~ brainDF$Gestation + brainDF$logLitter, data=brainDF)
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(fit3)
+```
+
+#### The residuals are still not random so we need to try a different transformation.
+
+```{r}
+fit4 <- lm(brainDF$logBrain ~ brainDF$logGestation + brainDF$Litter, data=brainDF)
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(fit4)
+
+fit4.resids <- resid(fit4)            # store residuals of model
+fit4.student.resids <- rstudent(fit4) # store studentized residuals of model
+
+layout(matrix(c(1,2),1,2)) # optional 2 graphs/page 
+hist(fit4.resids,main="Histogram of Residuals",xlab="Residuals")
+hist(fit4.student.resids,main="Historgram of Studenized Residuals",xlab="Studenized Residuals")
+```
+
+#### The residuals appear random and the residual QQ plot appears linear. 
+
+We will use this model. Log(Brain) = Beta0 + Beta1*Log(Gestation) + Beta2*Litter
+
+### Step 3: Fit the Model
+```{r}
+summary(fit4) # show results
+```
+
+#### Since Litter is not significant, we will remove Litter and re-run the model.
+
+```{r}
+fit5 <- lm(brainDF$logBrain ~ brainDF$logGestation, data=brainDF)
+summary(fit5)
+```
+
+
+### Step 4: Check Appropriateness of Model
+```{r}
+ggplot(brainDF,aes(x=log(brainDF$Gestation),y=log(brainDF$Brain),col=Litter))+geom_point()+
+  labs(title = "Log(Brain Weight) vs Log(Gestation)",x="Log(Gestation)",y="Log(Brain Weight)")      # add axes titles
+
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(fit5)
+
+```
+
+### Step 5: Interpret Coefficients
+
+
+
